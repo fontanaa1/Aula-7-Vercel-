@@ -12,8 +12,7 @@
 
 const express = require('express');
 const router = express.Router();
-let db = require('../data/supabase');
-const supabase = require('../data/supabase');
+let supabase = require('../data/supabase');
 // ⚠️ Usamos 'let' (não 'const') porque a rota DELETE vai
 //    reatribuir db.produtos com um novo array filtrado.
 
@@ -36,8 +35,6 @@ const supabase = require('../data/supabase');
 //    interpretado como um ID de produto!
 // =============================================================
 router.get('/erro-teste', (req, res) => {
-    // throw new Error() lança um erro intencional.
-    // O Express captura e repassa para o middleware de erro (errorHandler.js).
     throw new Error("O servidor do Haruy Sushi tropeçou!");
 });
 
@@ -57,18 +54,16 @@ router.get('/', async (req, res, next) => {
     try{
         const {categoriaId} = req.query;
         let consulta = supabase.from('produtos').select('*');
-
-        if (categoriaId) {
+        if (categoriaId){
             consulta = consulta.eq('categoriaId', categoriaId);
         }
+        const {data, error} = await consulta.order ('id', {ascending: true});
 
-        const {data, error} = await consulta.order('id', {ascending: true});
-        if (error) throw error;
+        if(error) throw error;
         res.json(data);
-    }catch (err) {
+    }catch(err){
         next(err);
     }
-    
 });
 
 // =============================================================
@@ -82,25 +77,29 @@ router.get('/', async (req, res, next) => {
 // Teste: GET http://localhost:3000/api/produtos/1
 // =============================================================
 router.get('/:id', async (req, res, next) => {
-    try {
-    const {id} = req.params;
-    const {data, error} = await supabase
-    .from('produtos')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
+    try{
+        const{id} = req.params;
+        const{data, error} = await supabase
+        .from('produtos')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
 
-    if (error) throw error;
-    if(data){
-        res.json (data);
-    }else {
-        res.status(404).json({mensagem: 'não encontrado.'})
-    }
-
-    } catch (err) {
+        if(error) throw error;
+        if(data){
+            res.json(data);
+        }else{
+            res.status(404).json({mensagem: 'não encontrado'});
+        }
+    }catch (err){
         next(err);
     }
 });
+
+// =============================================================
+// ── [POST] /api/produtos ──────────────────────────────────────
+// Adiciona um novo produto ao cardápio.
+//
 // O corpo (body) da requisição deve ser JSON:
 //   { "categoriaId": 1, "nome": "Uramaki", "descricao": "...", "preco": 45.00, "imagem": "uramaki.png" }
 //
@@ -112,15 +111,14 @@ router.get('/:id', async (req, res, next) => {
 //   Body → JSON → cole o body acima
 // =============================================================
 router.post('/', async (req, res, next) => {
-    try {
+    try{
         const {data, error} = await supabase
         .from('produtos')
         .insert([req.body])
-        .select();
+        .select()
+        if(error) throw error;
+        req.status(201).json(data[0]);
 
-
-        if (error) throw error;
-        res.status(201).json(data[0]);
     }catch (err) {
         next(err);
     }
@@ -139,24 +137,24 @@ router.post('/', async (req, res, next) => {
 //   Body → JSON → { "preco": 99.90 }
 // =============================================================
 router.put('/:id', async (req, res, next) => {
+    try{
+        const {id} = req.params;
+        const {data, error} = await supabase
+        .from('produtos')
+        .update(req.body)
+        .eq('id', id)
+        .select();
 
-  try {
-    const {id} = req.params;
-    const {data, error} = await supabase
-    .from('produtos')
-    .update(req.body)
-    .eq('id', id)
-    .select();
-
-    if (error) throw error;
-    if(data && data.length > 0) {
-        res.json(data[0]);
-    }else{
-        res.status(404).json({mensagem: 'não encontrado'});
+        if(error) throw error;
+        if (data && data.length > 0){
+            res.json(data[0]);
+        }else{
+            res.status(404).json({mensagem: 'não encontrado'});
+        }
+    }catch (err){
+        next(err);
     }
-  }catch (err) {
-    next(err);
-  }
+
 });
 
 // =============================================================
@@ -168,16 +166,15 @@ router.put('/:id', async (req, res, next) => {
 //   URL: http://localhost:3000/api/produtos/2
 // =============================================================
 router.delete('/:id', async (req, res, next) => {
-    try {
+    try{
         const {id} = req.params;
         const {error} = await supabase
         .from('produtos')
         .delete()
         .eq('id', id);
-
-        if (error) throw error;
-        res.json({mensagem: 'Produto deletado'});
-    } catch (err) {
+        if(error) throw error;
+        res.json({mensagem: 'produto deletado'});
+    }catch (err){
         next(err);
     }
 });

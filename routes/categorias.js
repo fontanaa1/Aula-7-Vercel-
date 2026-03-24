@@ -37,23 +37,19 @@ const supabase = require('../data/supabase');
 // Resposta esperada:
 //   [ { "id": 1, "nome": "Combinados" }, { "id": 2, "nome": "Temakis" }, ... ]
 router.get('/', async (req, res, next) => {
-    // db.categorias é o array de categorias do nosso banco em memória.
-    // res.json() converte o array para JSON e envia como resposta.
     try {
-        const { data, error  } = await supabase
-        .from('categorias')
-        .select('*')
-        .order('id', { ascending: true });
+        const { data, error } = await supabase
+            .from('categorias')
+            .select('*')
+            .order('id', { ascending: true });
 
-        if (error){
-        throw error;
-    }
+        if (error) {
+            throw error;
+        }
         res.json(data);
-    }catch (err) {
+    } catch (err) {
         next(err);
     }
-
-
 });
 
 // ─── [POST] /api/categorias ───────────────────────────────────
@@ -67,23 +63,18 @@ router.get('/', async (req, res, next) => {
 // Resposta esperada (status 201 Created):
 //   { "id": 4, "nome": "Sobremesas" }
 router.post('/', async (req, res, next) => {
-    // db.categorias é o array de categorias do nosso banco em memória.
-    // res.json() converte o array para JSON e envia como resposta.
     try {
-        const { data, error  } = await supabase
-        .from('categorias')
-        .insert([{nome: req.body.nome}])
-        .select();
+        const { data, error } = await supabase
+            .from('categorias')
+            .insert([{nome: req.body.nome}])
+            .select();
 
         if (error) throw error;
-    
+
         res.status(201).json(data[0]);
-    }catch (err) {
+    } catch (err) {
         next(err);
     }
-
-
-
 });
 
 // ─── Exportação do Router ─────────────────────────────────────
